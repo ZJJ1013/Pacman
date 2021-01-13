@@ -1,0 +1,955 @@
+Public Class MazeLevel1
+  
+
+
+    'Attributea to describe PacMan
+    Dim PacMan(5) As Image
+    Dim PacDirection As String = "stop"
+    Dim NextPacDirection As String = ""
+    Dim PacSpeed As Short = 10 '1, 2, 5, 10, 25, 50
+
+    'Attribute to describe Ghosts
+    Dim Ghosts(7) As Image
+    Dim GhostSpeed As Short = 5
+    Dim GhostDirectionRyan As String = "D"
+    Dim NextGhostDirectionRyan As String = ""
+    Dim GhostDirectionChris As String = "D"
+    Dim NextGhostDirectionChris As String = ""
+    Dim GhostDirectionLamby As String = "D"
+    Dim NextGhostDirectionLamby As String = ""
+    Dim GhostDirectionTony As String = "D"
+    Dim NextGhostDirectionTony As String = ""
+
+    'Various Othe Variables 
+    Dim Counter As Long = 0
+    Dim Wall(-1) As PictureBox
+    Dim Edible(-1) As PictureBox
+    Dim Score As Short = 0
+    Dim MazeCompletion As Short
+    Dim PowerUpClock As Short
+    Dim WallX(-1), WallY(-1) As Short
+    Dim DotX(-1), DotY(-1) As Short
+    Dim Lives As Short = 3
+    Dim WaitingClock As Short
+
+    Private Sub Form1_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles Me.KeyDown
+        ' keyvalues to set nextpacdirection 
+        ' whe nit is set then we use  it to see if the move is valid
+        If e.KeyValue = Keys.Up Then
+            NextPacDirection = "U"
+        ElseIf e.KeyValue = Keys.Down Then
+            NextPacDirection = "D"
+        ElseIf e.KeyValue = Keys.Left Then
+            NextPacDirection = "L"
+        ElseIf e.KeyValue = Keys.Right Then
+            NextPacDirection = "R"
+        ElseIf RestartClock.Enabled = True Then
+            NextPacDirection = "Stop"
+        Else
+            NextPacDirection = "Stop"
+        End If
+    End Sub
+
+    Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+        ' Day 1 - The Load Function
+        ' 1) Pre load all the ghost and pacman images 
+        ' 2) Call loadlevel and tell it to level 1 
+
+        'Pre load the ghost  image
+        Ghosts(0) = Image.FromFile("Inky.png")
+        Ghosts(1) = Image.FromFile("InkyVulnerable.png")
+        pbxRyan.Image = Ghosts(0)
+        Ghosts(2) = Image.FromFile("OrangeGhost.png")
+        Ghosts(3) = Image.FromFile("OrangeGhostVulnerable.png")
+        pbxChris.Image = Ghosts(2)
+        Ghosts(4) = Image.FromFile("BlueGhost.png")
+        Ghosts(5) = Image.FromFile("BlueGhostVulnerable.png")
+        pbxLamby.Image = Ghosts(4)
+        Ghosts(6) = Image.FromFile("GreenGhost.png")
+        Ghosts(7) = Image.FromFile("GreenGhostVulnerable.png")
+        pbxTony.Image = Ghosts(6)
+
+        ' PreLoad all of our pac images 
+        PacMan(0) = Image.FromFile("B.png")
+        PacMan(1) = Image.FromFile("U.png")
+        PacMan(2) = Image.FromFile("D.png")
+        PacMan(3) = Image.FromFile("L.png")
+        PacMan(4) = Image.FromFile("R.png")
+
+        Me.lblLives.Text = "Lives: " + Lives.ToString
+        ' This line of code is for full screen as soon as the game starts
+
+        Call CenterToScreen()
+        Me.FormBorderStyle = Windows.Forms.FormBorderStyle.None
+        Me.WindowState = FormWindowState.Maximized
+
+        LoadLevel(1)
+    End Sub
+
+    Private Sub LoadLevel(ByVal shtLevel As Short)
+        ' For every maze level we load we need to do each of the following 
+        '1. load up the x and y coordinates for each wall piece 
+        '2. load up the x and y coordinates for each edible (dots, powerpellets, fruit )
+        '3. place our pacman at his start location 
+        '4. place our ghosts(s) at their start location(s)
+        '5. then place all of the wall tiles and edibles on the form based on the left 
+
+
+
+        If shtLevel = 1 Then
+            'Level 1 
+            WallX = {1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 100, 1100, 100, 1100, 1050, 1050, 1100, 150, 150, 100, 100, 150, 150, 1050, 1050, 1100, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 750, 700, 700, 750, 850, 900, 950, 950, 900, 850, 1050, 1050, 1050, 1100, 1100, 1050, 1050, 1050, 1100, 1100, 1100, 850, 900, 950, 900, 950, 950, 900, 800, 750, 700, 700, 750, 800, 750, 700, 700, 750, 800, 800, 750, 700, 700, 750, 750, 700, 850, 900, 950, 950, 900, 850, 900, 950, 950, 900, 450, 500, 500, 450, 450, 450, 500, 500, 250, 300, 350, 350, 300, 250, 300, 350, 350, 300, 250, 100, 100, 100, 150, 150, 150, 250, 250, 250, 300, 350, 350, 350, 300, 450, 450, 450, 500, 500, 500, 100, 100, 100, 150, 150, 150, 250, 300, 350, 350, 350, 300, 250, 250, 450, 450, 450, 500, 500, 500}
+            WallY = {800, 750, 700, 650, 550, 600, 500, 450, 350, 300, 250, 200, 150, 100, 50, 0, 350, 300, 250, 200, 150, 100, 50, 0, 450, 500, 550, 600, 650, 700, 750, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 100, 700, 700, 100, 150, 150, 100, 150, 150, 650, 650, 700, 700, 650, 650, 100, 50, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 100, 100, 150, 150, 100, 100, 100, 150, 150, 150, 250, 300, 350, 350, 300, 250, 450, 500, 550, 550, 500, 450, 400, 400, 400, 250, 250, 300, 300, 250, 250, 300, 300, 300, 400, 400, 500, 500, 500, 550, 550, 550, 650, 650, 700, 700, 650, 650, 650, 700, 700, 700, 500, 500, 550, 550, 100, 100, 150, 150, 650, 700, 700, 650, 100, 100, 100, 150, 150, 150, 650, 650, 650, 700, 700, 700, 250, 300, 350, 350, 300, 250, 250, 300, 350, 350, 350, 300, 250, 250, 250, 300, 350, 250, 300, 350, 450, 500, 550, 550, 500, 450, 450, 450, 450, 500, 550, 550, 550, 500, 450, 500, 550, 550, 500, 450}
+            DotX = {63, 63, 63, 63, 163, 213, 213, 113, 213, 213, 113, 63, 63, 63, 63, 113, 163, 213, 213, 213, 263, 311, 413, 413, 413, 413, 413, 413, 313, 263, 363, 463, 563, 413, 563, 513, 563, 563, 513, 563, 563, 513, 563, 563, 463, 1011, 661, 1113, 1163, 1163, 1163, 1163, 1163, 1063, 963, 863, 763, 663, 663, 663, 1163, 1163, 1163, 1063, 963, 863, 763, 663, 663, 663, 1013, 1013, 1113, 1013, 813, 813, 1013, 1013, 813, 713, 813, 713, 913, 863, 913, 863, 863, 763, 763, 863, 963, 963, 1013, 813, 1113}
+            DotY = {363, 263, 163, 63, 63, 113, 213, 213, 313, 413, 413, 463, 563, 663, 763, 613, 763, 713, 613, 513, 63, 63, 213, 411, 113, 213, 313, 413, 513, 613, 613, 763, 763, 763, 763, 713, 663, 613, 563, 413, 363, 263, 213, 163, 63, 63, 411, 411, 413, 363, 463, 563, 663, 763, 763, 763, 763, 763, 563, 263, 163, 63, 63, 63, 63, 63, 63, 163, 263, 313, 213, 213, 113, 113, 713, 713, 613, 613, 613, 213, 213, 213, 263, 613, 563, 463, 463, 363, 363, 363, 463, 513, 413, 613}
+            MyPac.Image = PacMan(4)
+            MyPac.Left = 200
+            MyPac.Top = 200
+            pbxRyan.Left = 50
+            pbxRyan.Top = 50
+            pbxChris.Left = 1150
+            pbxChris.Top = 50
+            pbxLamby.Left = 1150
+            pbxLamby.Top = 750
+            pbxTony.Left = 50
+            pbxTony.Top = 750
+
+        ElseIf shtLevel = 2 Then
+            'Level 2
+            WallX = {1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 650, 700, 750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 650, 700, 750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 400, 800, 600, 400, 400, 400, 400, 400, 400, 400, 800, 800, 800, 800, 800, 800, 800, 450, 500, 550, 650, 700, 750, 950, 950, 950, 950, 1000, 1050, 1100, 1100, 1100, 1100, 1050, 1000, 100, 100, 100, 100, 150, 200, 250, 250, 250, 250, 200, 150, 700, 700, 700, 700, 700, 500, 500, 500, 500, 500, 600, 550, 500, 450, 400, 350, 550, 550, 600, 600, 600, 550, 350, 350, 350, 400, 450, 450, 450, 400, 400, 250, 200, 150, 100, 300, 300, 250, 200, 100, 100, 100, 100, 100, 100, 150, 200, 250, 300, 200, 200, 250, 300, 300, 250, 600, 600, 600, 600, 700, 700, 700, 700, 700, 800, 800, 800, 800, 850, 850, 850, 850, 900, 900, 900, 900, 900, 900, 950, 1000, 1050, 1100, 1100, 1100, 1100, 1100, 1100, 1000, 1000, 1000, 1000, 1000, 1000}
+            WallY = {800, 750, 700, 650, 600, 550, 500, 450, 350, 300, 250, 200, 150, 100, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 100, 150, 200, 250, 300, 350, 450, 500, 550, 600, 650, 700, 750, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 50, 750, 400, 100, 150, 200, 250, 300, 350, 400, 700, 650, 600, 550, 500, 450, 400, 400, 400, 400, 400, 400, 400, 100, 150, 200, 250, 250, 250, 250, 200, 150, 100, 100, 100, 600, 550, 650, 700, 700, 700, 700, 650, 600, 550, 550, 550, 700, 650, 600, 550, 500, 100, 150, 200, 250, 300, 700, 700, 700, 700, 700, 700, 550, 500, 500, 550, 600, 600, 500, 550, 600, 600, 600, 550, 500, 500, 550, 450, 450, 450, 450, 450, 350, 350, 350, 400, 350, 300, 250, 200, 100, 100, 100, 100, 100, 200, 250, 250, 250, 200, 200, 100, 150, 250, 300, 100, 150, 200, 250, 300, 100, 150, 250, 300, 100, 150, 250, 300, 350, 400, 500, 550, 650, 700, 700, 700, 700, 700, 650, 550, 500, 400, 350, 350, 400, 450, 500, 550, 600}
+            DotX = {63, 63, 63, 63, 63, 63, 63, 63, 113, 163, 163, 263, 313, 363, 313, 313, 213, 163, 163, 213, 313, 213, 313, 263, 163, 263, 363, 363, 363, 363, 363, 463, 363, 463, 463, 513, 513, 563, 663, 663, 663, 563, 563, 663, 763, 763, 763, 763, 563, 463, 463, 463, 463, 563, 563, 563, 663, 663, 613, 663, 663, 763, 763, 763, 763, 863, 813, 913, 913, 963, 913, 1013, 1113, 1163, 1163, 1163, 1063, 863, 863, 863, 863, 863, 963, 1063, 1163, 1163, 1163, 1163, 1163, 1063, 963, 963, 963, 913, 963, 1063, 1113, 1063, 1063, 861, 311}
+            DotY = {363, 263, 163, 63, 463, 563, 663, 763, 513, 163, 763, 763, 713, 763, 613, 513, 513, 263, 363, 413, 413, 313, 313, 163, 63, 63, 63, 163, 263, 363, 463, 463, 663, 663, 763, 613, 513, 463, 463, 563, 663, 663, 763, 763, 763, 663, 563, 463, 63, 63, 163, 263, 363, 363, 263, 163, 63, 163, 213, 263, 363, 363, 263, 163, 63, 63, 213, 213, 113, 63, 313, 313, 313, 263, 163, 63, 63, 363, 463, 563, 663, 763, 763, 763, 763, 663, 563, 463, 363, 363, 363, 463, 563, 613, 663, 663, 613, 563, 463, 411, 661}
+            MyPac.Image = PacMan(4)
+            MyPac.Left = 150
+            MyPac.Top = 50
+            pbxRyan.Left = 50
+            pbxRyan.Top = 50
+            pbxChris.Left = 1150
+            pbxChris.Top = 50
+            pbxLamby.Left = 1150
+            pbxLamby.Top = 750
+            pbxTony.Left = 50
+            pbxTony.Top = 750
+
+        ElseIf shtLevel = 3 Then
+            'Level 3
+            WallX = {1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 200, 250, 300, 350, 400, 450, 500, 200, 250, 300, 350, 400, 450, 500, 200, 250, 300, 350, 400, 450, 500, 200, 250, 300, 350, 400, 450, 500, 200, 250, 300, 350, 400, 450, 500, 700, 700, 700, 700, 700, 700, 700, 700, 700, 800, 800, 800, 800, 800, 800, 800, 800, 800, 900, 900, 900, 900, 900, 900, 900, 900, 900, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000}
+            WallY = {800, 750, 700, 650, 600, 550, 500, 450, 350, 300, 250, 200, 150, 100, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 100, 150, 200, 250, 300, 350, 450, 500, 550, 600, 650, 700, 750, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 800, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 700, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 200, 200, 200, 200, 200, 200, 200, 300, 300, 300, 300, 300, 300, 300, 400, 400, 400, 400, 400, 400, 400, 500, 500, 500, 500, 500, 500, 500, 600, 600, 600, 600, 600, 600, 600, 200, 250, 300, 350, 400, 450, 500, 550, 600, 200, 250, 300, 350, 400, 450, 500, 550, 600, 200, 250, 300, 350, 400, 450, 500, 550, 600, 200, 250, 300, 350, 400, 450, 500, 550, 600}
+            DotX = {63, 63, 63, 63, 163, 263, 363, 463, 63, 63, 63, 63, 163, 263, 363, 463, 563, 663, 763, 863, 963, 1063, 1163, 1163, 1163, 1163, 1163, 1163, 1163, 1163, 1063, 963, 863, 763, 663, 563, 163, 163, 163, 163, 163, 163, 1063, 1063, 1063, 1063, 1063, 1063, 263, 363, 463, 263, 363, 463, 263, 363, 463, 263, 363, 463, 263, 363, 463, 263, 363, 463, 561, 563, 563, 563, 563, 563, 961, 663, 763, 863, 663, 763, 863, 963, 663, 763, 863, 963, 663, 663, 663, 763, 863, 963, 963, 863, 763, 763, 863, 963}
+            DotY = {363, 263, 163, 63, 63, 63, 63, 63, 463, 563, 663, 763, 763, 763, 763, 763, 763, 763, 763, 763, 763, 763, 763, 663, 563, 463, 363, 263, 163, 63, 63, 63, 63, 63, 63, 63, 163, 263, 363, 463, 563, 663, 163, 263, 363, 463, 563, 663, 163, 163, 163, 263, 263, 263, 363, 363, 363, 463, 463, 463, 563, 563, 563, 663, 663, 663, 161, 263, 363, 463, 563, 663, 161, 163, 163, 163, 263, 263, 263, 263, 363, 363, 363, 363, 463, 563, 663, 663, 663, 663, 563, 563, 563, 463, 463, 463}
+            MyPac.Image = PacMan(4)
+            MyPac.Left = 150
+            MyPac.Top = 50
+            pbxRyan.Left = 50
+            pbxRyan.Top = 50
+            pbxChris.Left = 1150
+            pbxChris.Top = 50
+            pbxLamby.Left = 1150
+            pbxLamby.Top = 750
+            pbxTony.Left = 50
+            pbxTony.Top = 750
+
+        End If
+
+        'The following loop is run once for every wall piece you need.
+        'create a new wall piece with all the pro[perties of a wall peiece 
+        ' give it a location, color, size anf so on  
+        'Place it on the screen based on the coordinates above in WallX() and WallY()
+
+        For index = 0 To WallX.Length() - 1
+            Dim NewWallPiece As New PictureBox
+            NewWallPiece.Left = WallX(index)
+            NewWallPiece.Top = WallY(index)
+            NewWallPiece.BackColor = Color.Blue
+            ReDim Preserve Wall(Wall.Length())
+            Wall(index) = NewWallPiece
+            Me.Controls.Add(Wall(index))
+        Next
+
+
+        For index = 0 To DotX.Length() - 1
+            Dim NewDot As New PictureBox
+            If index <> 89 And index <> 13 Then
+
+                ' regular dots 
+                NewDot.BackColor = Color.White
+                NewDot.Name = "Dot"
+                NewDot.Width = 5
+                NewDot.Height = 5
+                NewDot.Left = DotX(index) + 12
+                NewDot.Top = DotY(index) + 12
+
+            ElseIf index = 89 Then
+                'Power Pellet
+                NewDot.BackColor = Color.Yellow
+                NewDot.Name = "PowerPellet"
+                NewDot.Width = 20
+                NewDot.Height = 20
+                NewDot.Left = DotX(index) + 6
+                NewDot.Top = DotY(index) + 6
+
+            ElseIf index = 13 Then
+                'Power Pellet
+                NewDot.BackColor = Color.Yellow
+                NewDot.Name = "PowerPellet"
+                NewDot.Width = 20
+                NewDot.Height = 20
+                NewDot.Left = DotX(index) + 6
+                NewDot.Top = DotY(index) + 6
+
+            End If
+
+            ReDim Preserve Edible(Edible.Length())
+            Edible(index) = NewDot
+            Me.Controls.Add(Edible(index))
+        Next
+    End Sub
+
+    Private Sub PacClock_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles PacClock.Tick
+
+        'This function deals with all the pacman move stuff.
+        ' It does all of the following ...
+        '1) Updates Counter so we can animate our PacMan from Open mouth to close 
+        '   mouth to make him " Munch ". Odd is open and even is closed 
+        '2) Use HitWalls to see if next move will be a collision. If it is set 
+        '   PacDirectio nto a stop. If it isn't make NextPacDirection and PacDirection th same. 
+        '3) Check to see what edibles Pacman has collided with and update score and 
+        '   play sound files accordingly
+        '4) Check to see if Pacman has moved through the secret passage and move 
+        ' him to the other side of the maze 
+
+
+        'Check for collision with the walls then move or stop pacman accordingly
+        Counter += 1
+
+        ' Next position is a collision with walls 
+        If HitWalls(MyPac, NextPacDirection, PacSpeed) = True Then
+
+            If NextPacDirection = PacDirection Or HitWalls(MyPac, PacDirection, PacSpeed) Then
+                PacDirection = "Stop"
+            End If
+        Else
+            PacDirection = NextPacDirection
+        End If
+
+        MovePac(PacDirection, Counter)
+
+        'Check to see if pacman is going through the tunnels and teleport him to 
+        ' other side of map if so
+        ' these values have to suit for our own maze 
+        If MyPac.Left > 1200 Then
+            MyPac.Left = 0
+        ElseIf MyPac.Left < 0 Then
+            MyPac.Left = 1200
+        End If
+
+        If MyPac.Top < 0 Then
+            MyPac.Top = 800
+        ElseIf MyPac.Top > 800 Then
+            MyPac.Top = 0
+        End If
+
+        'Check if PacMan dead because of hitting Ryan
+        If HitGhostRyan(MyPac, pbxRyan) = "Dead" Then
+            My.Computer.Audio.Play(My.Resources.pacman_death, AudioPlayMode.Background)
+            MyPac.Image = PacMan(0)
+            PacClock.Enabled = False
+            GhostRyanClock.Enabled = False
+            GhostChrisClock.Enabled = False
+            GhostLambyClock.Enabled = False
+            GhostTonyClock.Enabled = False
+            Lives -= 1
+
+
+            Me.lblLives.Text = "Lives: " + Lives.ToString
+            'Make the player jave more than 1 life when playing
+            'After all the lives are used, game over 
+            If Lives > 0 Then
+                RestartClock.Enabled = True
+                If Lives = 3 Then
+                    Me.pbxHeart4.Visible = False
+                ElseIf Lives = 2 Then
+                    Me.pbxHeart3.Visible = False
+                ElseIf Lives = 1 Then
+                    Me.pbxHeart2.Visible = False
+
+                End If
+            ElseIf Lives <= 0 Then
+                Me.pbxHeart1.Visible = False
+                MessageBox.Show("Game Over")
+                Me.Refresh()
+                Application.Restart()
+
+            End If
+            'Check if PacMan dead because of hitting Chris
+        ElseIf HitGhostChris(MyPac, pbxChris) = "Dead" Then
+            My.Computer.Audio.Play(My.Resources.pacman_death, AudioPlayMode.Background)
+            MyPac.Image = PacMan(0)
+            PacClock.Enabled = False
+            GhostRyanClock.Enabled = False
+            GhostChrisClock.Enabled = False
+            GhostLambyClock.Enabled = False
+            GhostTonyClock.Enabled = False
+            Lives -= 1
+
+            Me.lblLives.Text = "Lives: " + Lives.ToString
+            'Make the player jave more than 1 life when playing
+            'After all the lives are used, game over 
+            If Lives > 0 Then
+                RestartClock.Enabled = True
+                If Lives = 3 Then
+                    Me.pbxHeart4.Visible = False
+                ElseIf Lives = 2 Then
+                    Me.pbxHeart3.Visible = False
+                ElseIf Lives = 1 Then
+                    Me.pbxHeart2.Visible = False
+
+                End If
+            ElseIf Lives <= 0 Then
+                Me.pbxHeart1.Visible = False
+                MessageBox.Show("Game Over")
+                Me.Refresh()
+                Application.Restart()
+
+            End If
+
+        ElseIf HitGhostLamby(MyPac, pbxLamby) = "Dead" Then
+            My.Computer.Audio.Play(My.Resources.pacman_death, AudioPlayMode.Background)
+            MyPac.Image = PacMan(0)
+            PacClock.Enabled = False
+            GhostRyanClock.Enabled = False
+            GhostChrisClock.Enabled = False
+            GhostLambyClock.Enabled = False
+            GhostTonyClock.Enabled = False
+            Lives -= 1
+
+            Me.lblLives.Text = "Lives: " + Lives.ToString
+            'Make the player jave more than 1 life when playing
+            'After all the lives are used, game over 
+            If Lives > 0 Then
+                RestartClock.Enabled = True
+                If Lives = 3 Then
+                    Me.pbxHeart4.Visible = False
+                ElseIf Lives = 2 Then
+                    Me.pbxHeart3.Visible = False
+                ElseIf Lives = 1 Then
+                    Me.pbxHeart2.Visible = False
+
+                End If
+            ElseIf Lives <= 0 Then
+                Me.pbxHeart1.Visible = False
+                MessageBox.Show("Game Over")
+                Me.Refresh()
+                Application.Restart()
+
+            End If
+
+        ElseIf HitGhostTony(MyPac, pbxTony) = "Dead" Then
+            My.Computer.Audio.Play(My.Resources.pacman_death, AudioPlayMode.Background)
+            MyPac.Image = PacMan(0)
+            PacClock.Enabled = False
+            GhostRyanClock.Enabled = False
+            GhostChrisClock.Enabled = False
+            GhostTonyClock.Enabled = False
+            GhostLambyClock.Enabled = False
+            Lives -= 1
+
+            Me.lblLives.Text = "Lives: " + Lives.ToString
+            'Make the player jave more than 1 life when playing
+            'After all the lives are used, game over 
+            If Lives > 0 Then
+                RestartClock.Enabled = True
+                If Lives = 3 Then
+                    Me.pbxHeart4.Visible = False
+                ElseIf Lives = 2 Then
+                    Me.pbxHeart3.Visible = False
+                ElseIf Lives = 1 Then
+                    Me.pbxHeart2.Visible = False
+
+                End If
+            ElseIf Lives <= 0 Then
+                Me.pbxHeart1.Visible = False
+                MessageBox.Show("Game Over")
+                Me.Refresh()
+                Application.Restart()
+
+
+            End If
+
+        ElseIf (HitGhostRyan(MyPac, pbxRyan) = "Ghost Score") Then
+            Score += 200
+            My.Computer.Audio.Play(My.Resources.pacman_eatghost, AudioPlayMode.Background)
+
+            pbxRyan.Left = 50
+            pbxRyan.Top = 50
+           
+
+            If Lives = 3 Then
+                Me.pbxHeart4.Visible = True
+                Lives += 1
+                Me.lblLives.Text = "Lives: " + Lives.ToString
+            ElseIf Lives = 2 Then
+                Me.pbxHeart3.Visible = True
+                Lives += 1
+                Me.lblLives.Text = "Lives: " + Lives.ToString
+            ElseIf Lives = 1 Then
+                Me.pbxHeart2.Visible = True
+                Lives += 1
+                Me.lblLives.Text = "Lives: " + Lives.ToString
+            End If
+
+
+        ElseIf (HitGhostChris(MyPac, pbxChris) = "Ghost Score") Then
+            Score += 200
+            My.Computer.Audio.Play(My.Resources.pacman_eatghost, AudioPlayMode.Background)
+            
+            pbxChris.Left = 1150
+            pbxChris.Top = 50
+            
+
+            If Lives = 3 Then
+                Me.pbxHeart4.Visible = True
+                Lives += 1
+                Me.lblLives.Text = "Lives: " + Lives.ToString
+            ElseIf Lives = 2 Then
+                Me.pbxHeart3.Visible = True
+                Lives += 1
+                Me.lblLives.Text = "Lives: " + Lives.ToString
+            ElseIf Lives = 1 Then
+                Me.pbxHeart2.Visible = True
+                Lives += 1
+                Me.lblLives.Text = "Lives: " + Lives.ToString
+            End If
+
+        ElseIf (HitGhostLamby(MyPac, pbxLamby) = "Ghost Score") Then
+            Score += 200
+            My.Computer.Audio.Play(My.Resources.pacman_eatghost, AudioPlayMode.Background)
+
+           
+            pbxLamby.Left = 1150
+            pbxLamby.Top = 750
+            
+
+            If Lives = 3 Then
+                Me.pbxHeart4.Visible = True
+                Lives += 1
+                Me.lblLives.Text = "Lives: " + Lives.ToString
+            ElseIf Lives = 2 Then
+                Me.pbxHeart3.Visible = True
+                Lives += 1
+                Me.lblLives.Text = "Lives: " + Lives.ToString
+            ElseIf Lives = 1 Then
+                Me.pbxHeart2.Visible = True
+                Lives += 1
+                Me.lblLives.Text = "Lives: " + Lives.ToString
+            End If
+
+        ElseIf (HitGhostTony(MyPac, pbxTony) = "Ghost Score") Then
+            Score += 200
+            My.Computer.Audio.Play(My.Resources.pacman_eatghost, AudioPlayMode.Background)
+            
+            pbxTony.Left = 50
+            pbxTony.Top = 750
+
+            If Lives = 3 Then
+                Me.pbxHeart4.Visible = True
+                Lives += 1
+                Me.lblLives.Text = "Lives: " + Lives.ToString
+            ElseIf Lives = 2 Then
+                Me.pbxHeart3.Visible = True
+                Lives += 1
+                Me.lblLives.Text = "Lives: " + Lives.ToString
+            ElseIf Lives = 1 Then
+                Me.pbxHeart2.Visible = True
+                Lives += 1
+                Me.lblLives.Text = "Lives: " + Lives.ToString
+            End If
+
+        End If
+
+        'iF the score went to 5000 then add another life for the [acman
+
+
+        'See what edibles Pacman has collided with and play correct sounds and update score 
+        Dim Eatable As String = Eats(MyPac)
+
+        If Eatable = "Dot" Then
+            Score += 10
+            My.Computer.Audio.Play(My.Resources.pacman_chomp, AudioPlayMode.Background)
+
+        ElseIf Eatable = "PowerPellet" Then
+            PowerPelletClock.Enabled = True
+            Score += 100
+            My.Computer.Audio.Play(My.Resources.pacman_chomp, AudioPlayMode.Background)
+
+        ElseIf Eatable = "Fruit" Then
+            Score += 1000
+            My.Computer.Audio.Play(My.Resources.pacman_eatfruit, AudioPlayMode.Background)
+
+
+        ElseIf Eatable = "Complete" Then
+            Me.PacClock.Enabled = False
+            Me.GhostRyanClock.Enabled = False
+            Me.GhostLambyClock.Enabled = False
+            Me.GhostChrisClock.Enabled = False
+            'load up next game board 
+            MessageBox.Show("Level Complete")
+            Me.Hide()
+            MazeLevel2.Show()
+
+        End If
+
+
+        Me.lblScore.Text = "Score: " + Score.ToString
+
+
+    End Sub
+
+    Private Sub MovePac(ByVal PacDirection As String, ByVal Counter As Long)
+        'This simply moves our pacman in the direction stored in 
+        ' PacDirection and animates the chomping motion based on the # stored in cOUNTER 
+        ' if Counter is an even # it will load the open mouth image for the correct direction 
+        ' if counter is odd it will load the closed mouth pacman
+
+        If PacDirection = "R" Then
+            Me.MyPac.Left += PacSpeed
+            If Counter Mod 2 Then
+                MyPac.Image = PacMan(4)
+            Else
+                MyPac.Image = PacMan(0)
+            End If
+        ElseIf PacDirection = "L" Then
+            Me.MyPac.Left -= PacSpeed
+            If Counter Mod 2 Then
+                MyPac.Image = PacMan(3)
+            Else
+                MyPac.Image = PacMan(0)
+            End If
+        ElseIf PacDirection = "D" Then
+            Me.MyPac.Top += PacSpeed
+            If Counter Mod 2 Then
+                MyPac.Image = PacMan(2)
+            Else
+                MyPac.Image = PacMan(0)
+            End If
+        ElseIf PacDirection = "U" Then
+            Me.MyPac.Top -= PacSpeed
+            If Counter Mod 2 Then
+                MyPac.Image = PacMan(1)
+            Else
+                MyPac.Image = PacMan(0)
+            End If
+        End If
+    End Sub
+
+    Private Function Eats(ByVal PacMan As PictureBox)
+        'Loop through all the dots to see if pacman has hit it. If the bounds of 
+        'the pacman picturebox 
+        'touches the bounds of the dot or the other object return its name. 
+        'so if this function returns a "Dot" pac has hit a dot. If it returns 
+        'a "pellet" pacman has hit a pellet
+        'and if it returns a "Fruit" pacman has eaten a special. If it returns 
+        'nothing the nno collision has occured
+        'We also move the dots off screeen to make it look like they disappeared 
+        'we also count up the eaten items to see if maze is complete
+        For index = 0 To Edible.Length - 1
+            If MazeCompletion = Edible.Length Then
+                Return "Complete"
+            ElseIf PacMan.Bounds.IntersectsWith(Edible(index).Bounds) Then
+                MazeCompletion += 1
+                Edible(index).Left = -1000
+                Return Edible(index).Name
+            End If
+        Next
+    End Function
+
+    Private Function HitGhostRyan(ByVal PacMan As PictureBox, ByVal Ghost As PictureBox)
+        ' this only work for one ghost and we need a lot for all the ghosts 
+        Dim DistanceApartRyan As Short = Math.Sqrt((MyPac.Left - pbxRyan.Left) ^ 2 _
+                                                + (MyPac.Top - pbxRyan.Top) ^ 2)
+
+
+        If DistanceApartRyan <= 45 And Me.PowerPelletClock.Enabled = False Then
+            Return "Dead"
+        ElseIf DistanceApartRyan <= 45 And Me.PowerPelletClock.Enabled = True Then
+            Return "Ghost Score"
+        Else
+            Return ""
+        End If
+
+    End Function
+
+    Private Function HitGhostChris(ByVal PacMan As PictureBox, ByVal Ghost As PictureBox)
+        ' this only work for one ghost and we need a lot for all the ghosts 
+
+
+        Dim DistanceApartChris As Short = Math.Sqrt((MyPac.Left - pbxChris.Left) ^ 2 _
+                                              + (MyPac.Top - pbxChris.Top) ^ 2)
+
+
+
+        If DistanceApartChris <= 45 And Me.PowerPelletClock.Enabled = False Then
+            Return "Dead"
+        ElseIf DistanceApartChris <= 45 And Me.PowerPelletClock.Enabled = True Then
+            Return "Ghost Score"
+        Else
+            Return ""
+        End If
+
+
+    End Function
+
+    Private Function HitGhostLamby(ByVal PacMan As PictureBox, ByVal Ghost As PictureBox)
+        ' this only work for one ghost and we need a lot for all the ghosts 
+
+
+        Dim DistanceApartLamby As Short = Math.Sqrt((MyPac.Left - pbxLamby.Left) ^ 2 _
+                                               + (MyPac.Top - pbxLamby.Top) ^ 2)
+
+
+
+        If DistanceApartLamby <= 45 And Me.PowerPelletClock.Enabled = False Then
+            Return "Dead"
+        ElseIf DistanceApartLamby <= 45 And Me.PowerPelletClock.Enabled = True Then
+            Return "Ghost Score"
+        Else
+            Return ""
+        End If
+
+    End Function
+
+    Private Function HitGhostTony(ByVal PacMan As PictureBox, ByVal Ghost As PictureBox)
+        ' this only work for one ghost and we need a lot for all the ghosts 
+
+
+        Dim DistanceApartTony As Short = Math.Sqrt((MyPac.Left - pbxTony.Left) ^ 2 _
+                                               + (MyPac.Top - pbxTony.Top) ^ 2)
+
+
+
+        If DistanceApartTony <= 45 And Me.PowerPelletClock.Enabled = False Then
+            Return "Dead"
+        ElseIf DistanceApartTony <= 45 And Me.PowerPelletClock.Enabled = True Then
+            Return "Ghost Score"
+        Else
+            Return ""
+        End If
+
+    End Function
+
+    Private Function HitWalls(ByVal Sprite As PictureBox, ByVal NextDirection As String, ByVal Speed As Short)
+        ' We use this function to check to see if our pacman or Ghost's current direction 
+        ' will make him crash into a wall on the nest move 
+        'we do this by creating a copy of the sprite (either pacman or Ghost)
+        ' to our spriteCopy. Then we update the spritecopy with the next direction calues 
+        'if the new position of the spritecopy is detected as a collision we return TRUE or otherwise FALSE
+        'so in easyspeak, if the next mve of the sprite will be a collision this function will say "Collision"
+        'So in the calling function we the nmove the sprite if HitWalls = FALSE and not move his
+
+        ' create replication of the sprite 
+        Dim SpriteCopy = New PictureBox()
+        Dim XVal, YVal, Width, Height As Short
+        XVal = Sprite.Left
+        YVal = Sprite.Top
+        Width = Sprite.Width
+        Height = Sprite.Height
+        SpriteCopy.Left = XVal
+        SpriteCopy.Top = YVal
+        SpriteCopy.Width = Width
+        Sprite.Height = Height
+
+
+        'Change its position based on current value of NextDirection 
+        If NextDirection = "R" Then
+            SpriteCopy.Left += Speed
+        ElseIf NextDirection = "L" Then
+            SpriteCopy.Left -= Speed
+        ElseIf NextDirection = "U" Then
+            SpriteCopy.Top -= Speed
+        ElseIf NextDirection = "D" Then
+            SpriteCopy.Top += Speed
+        End If
+        'Me.Labl1.Text = WallX.length()- 1 
+        'Check location for collision based on the location of this temporary sprite and return wither True
+        For index = 0 To Wall.Length() - 1
+            If SpriteCopy.Bounds.IntersectsWith(Wall(index).Bounds) Then
+                Return True
+            End If
+        Next
+        Return False
+    End Function
+
+    Private Sub GhostRyanClock_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles GhostRyanClock.Tick
+
+        GhostChooseDirection()
+
+        If GhostDirectionRyan = "R" Then
+            pbxRyan.Left += GhostSpeed
+        ElseIf GhostDirectionRyan = "L" Then
+            pbxRyan.Left -= GhostSpeed
+        ElseIf GhostDirectionRyan = "U" Then
+            pbxRyan.Top -= GhostSpeed
+        ElseIf GhostDirectionRyan = "D" Then
+            pbxRyan.Top += GhostSpeed
+        End If
+
+        If pbxRyan.Left > 1150 Then
+            pbxRyan.Left = 0
+        ElseIf pbxRyan.Left < 0 Then
+            pbxRyan.Left = 1150
+        End If
+    End Sub
+
+    Private Sub GhostChooseDirection()
+
+        Dim DirectionAvailableRyan As String = ""
+        Dim DirectionAvailableChris As String = ""
+        Dim DirectionAvailableLamby As String = ""
+        Dim DirectionAvailableTony As String = ""
+        Dim AbovePac As Boolean = Nothing
+        Dim LeftOfPac As Boolean = Nothing
+        Dim ChrisAbovePac As Boolean = Nothing
+        Dim ChrisLeftOfPac As Boolean = Nothing
+        Dim LambyAbovePac As Boolean = Nothing
+        Dim LambyLeftOfPac As Boolean = Nothing
+        Dim TonyAbovePac As Boolean = Nothing
+        Dim TonyLeftOfPac As Boolean = Nothing
+        'Check if GhostRyan hits the wall
+        If HitWalls(pbxRyan, "U", GhostSpeed) = False And GhostDirectionRyan <> "D" Then
+            DirectionAvailableRyan += "U"
+        End If
+        If HitWalls(pbxRyan, "D", GhostSpeed) = False And GhostDirectionRyan <> "U" Then
+            DirectionAvailableRyan += "D"
+        End If
+        If HitWalls(pbxRyan, "L", GhostSpeed) = False And GhostDirectionRyan <> "R" Then
+            DirectionAvailableRyan += "L"
+        End If
+        If HitWalls(pbxRyan, "R", GhostSpeed) = False And GhostDirectionRyan <> "L" Then
+            DirectionAvailableRyan += "R"
+        End If
+
+        Randomize()
+
+        GhostDirectionRyan = DirectionAvailableRyan.Substring(Int(Rnd() * DirectionAvailableRyan.Length), 1)
+
+        'GhsotRyan
+        If Me.pbxRyan.Left < Me.MyPac.Left Then
+            LeftOfPac = False
+        Else
+            LeftOfPac = True
+
+        End If
+
+        If Me.pbxRyan.Top > Me.MyPac.Top Then
+            AbovePac = False
+        Else
+            AbovePac = True
+        End If
+
+        'Check if GhostChris hits the wall
+        If HitWalls(pbxChris, "U", GhostSpeed) = False And GhostDirectionChris <> "D" Then
+            DirectionAvailableChris += "U"
+        End If
+        If HitWalls(pbxChris, "D", GhostSpeed) = False And GhostDirectionChris <> "U" Then
+            DirectionAvailableChris += "D"
+        End If
+        If HitWalls(pbxChris, "L", GhostSpeed) = False And GhostDirectionChris <> "R" Then
+            DirectionAvailableChris += "L"
+        End If
+        If HitWalls(pbxChris, "R", GhostSpeed) = False And GhostDirectionChris <> "L" Then
+            DirectionAvailableChris += "R"
+        End If
+
+        Randomize()
+
+        GhostDirectionChris = DirectionAvailableChris.Substring(Int(Rnd() * DirectionAvailableChris.Length), 1)
+
+        'GhsotChris
+        If Me.pbxChris.Left < Me.MyPac.Left Then
+            ChrisLeftOfPac = False
+        Else
+            ChrisLeftOfPac = True
+
+        End If
+
+        If Me.pbxChris.Top > Me.MyPac.Top Then
+            ChrisAbovePac = False
+        Else
+            ChrisAbovePac = True
+        End If
+
+        'Check if GhostLamby hits the wall
+        If HitWalls(pbxLamby, "U", GhostSpeed) = False And GhostDirectionLamby <> "D" Then
+            DirectionAvailableLamby += "U"
+        End If
+        If HitWalls(pbxLamby, "D", GhostSpeed) = False And GhostDirectionLamby <> "U" Then
+            DirectionAvailableLamby += "D"
+        End If
+        If HitWalls(pbxLamby, "L", GhostSpeed) = False And GhostDirectionLamby <> "R" Then
+            DirectionAvailableLamby += "L"
+        End If
+        If HitWalls(pbxLamby, "R", GhostSpeed) = False And GhostDirectionLamby <> "L" Then
+            DirectionAvailableLamby += "R"
+        End If
+
+        Randomize()
+
+        GhostDirectionLamby = DirectionAvailableLamby.Substring(Int(Rnd() * DirectionAvailableLamby.Length), 1)
+
+        'GhsotLamby
+        If Me.pbxLamby.Left < Me.MyPac.Left Then
+            LambyLeftOfPac = False
+        Else
+            LambyLeftOfPac = True
+
+        End If
+
+        If Me.pbxLamby.Top > Me.MyPac.Top Then
+            LambyAbovePac = False
+        Else
+            LambyAbovePac = True
+        End If
+
+        'Check if GhostTony hits the wall
+        If HitWalls(pbxTony, "U", GhostSpeed) = False And GhostDirectionTony <> "D" Then
+            DirectionAvailableTony += "U"
+        End If
+        If HitWalls(pbxTony, "D", GhostSpeed) = False And GhostDirectionTony <> "U" Then
+            DirectionAvailableTony += "D"
+        End If
+        If HitWalls(pbxTony, "L", GhostSpeed) = False And GhostDirectionTony <> "R" Then
+            DirectionAvailableTony += "L"
+        End If
+        If HitWalls(pbxTony, "R", GhostSpeed) = False And GhostDirectionTony <> "L" Then
+            DirectionAvailableTony += "R"
+        End If
+
+        Randomize()
+
+        GhostDirectionTony = DirectionAvailableTony.Substring(Int(Rnd() * DirectionAvailableTony.Length), 1)
+
+        'GhsotTony
+        If Me.pbxTony.Left < Me.MyPac.Left Then
+            TonyLeftOfPac = False
+        Else
+            TonyLeftOfPac = True
+
+        End If
+
+        If Me.pbxTony.Top > Me.MyPac.Top Then
+            TonyAbovePac = False
+        Else
+            TonyAbovePac = True
+        End If
+
+    End Sub
+
+    Private Sub PowerPelletClock_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles PowerPelletClock.Tick
+        PowerUpClock += 1
+        If PowerUpClock Mod 2 = 1 Then
+            Me.pbxRyan.Image = Ghosts(1)
+            Me.pbxChris.Image = Ghosts(3)
+            Me.pbxLamby.Image = Ghosts(5)
+            Me.pbxTony.Image = Ghosts(7)
+        Else
+            Me.pbxRyan.Image = Ghosts(0)
+            Me.pbxChris.Image = Ghosts(2)
+            Me.pbxLamby.Image = Ghosts(4)
+            Me.pbxTony.Image = Ghosts(6)
+        End If
+        If PowerUpClock = 50 Then
+            Me.PowerPelletClock.Enabled = False
+            PowerUpClock = 0
+        End If
+    End Sub
+
+    Private Sub RestartClock_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles RestartClock.Tick
+        WaitingClock += 1
+
+        MyPac.Left = 200
+        MyPac.Top = 200
+        pbxRyan.Left = 50
+        pbxRyan.Top = 50
+        pbxChris.Left = 1150
+        pbxChris.Top = 50
+        pbxLamby.Left = 1150
+        pbxLamby.Top = 750
+        pbxTony.Left = 50
+        pbxTony.Top = 750
+
+        If WaitingClock = 5 Then
+            Me.RestartClock.Enabled = False
+            WaitingClock = 0
+            MyPac.Image = PacMan(0)
+            Me.PacClock.Enabled = True
+            GhostRyanClock.Enabled = True
+            GhostLambyClock.Enabled = True
+            GhostChrisClock.Enabled = True
+            GhostTonyClock.Enabled = True
+        End If
+    End Sub
+
+    Private Sub GhostChrisClock_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles GhostChrisClock.Tick
+        GhostChooseDirection()
+
+        If GhostDirectionChris = "R" Then
+            pbxChris.Left += GhostSpeed
+        ElseIf GhostDirectionChris = "L" Then
+            pbxChris.Left -= GhostSpeed
+        ElseIf GhostDirectionChris = "U" Then
+            pbxChris.Top -= GhostSpeed
+        ElseIf GhostDirectionChris = "D" Then
+            pbxChris.Top += GhostSpeed
+        End If
+
+        If pbxChris.Left > 1150 Then
+            pbxChris.Left = 0
+        ElseIf pbxChris.Left < 0 Then
+            pbxChris.Left = 1150
+        End If
+    End Sub
+
+    Private Sub GhostLambyClock_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles GhostLambyClock.Tick
+        GhostChooseDirection()
+
+        If GhostDirectionLamby = "R" Then
+            pbxLamby.Left += GhostSpeed
+        ElseIf GhostDirectionLamby = "L" Then
+            pbxLamby.Left -= GhostSpeed
+        ElseIf GhostDirectionLamby = "U" Then
+            pbxLamby.Top -= GhostSpeed
+        ElseIf GhostDirectionLamby = "D" Then
+            pbxLamby.Top += GhostSpeed
+        End If
+
+        If pbxLamby.Left > 1150 Then
+            pbxLamby.Left = 0
+        ElseIf pbxLamby.Left < 0 Then
+            pbxLamby.Left = 1150
+        End If
+    End Sub
+
+    Private Sub GhostTonyClock_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles GhostTonyClock.Tick
+        GhostChooseDirection()
+
+        If GhostDirectionTony = "R" Then
+            pbxTony.Left += GhostSpeed
+        ElseIf GhostDirectionTony = "L" Then
+            pbxTony.Left -= GhostSpeed
+        ElseIf GhostDirectionTony = "U" Then
+            pbxTony.Top -= GhostSpeed
+        ElseIf GhostDirectionTony = "D" Then
+            pbxTony.Top += GhostSpeed
+        End If
+
+        If pbxTony.Left > 1150 Then
+            pbxTony.Left = 0
+        ElseIf pbxTony.Left < 0 Then
+            pbxTony.Left = 1150
+        End If
+    End Sub
+
+   
+End Class
+
